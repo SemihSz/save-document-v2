@@ -117,10 +117,7 @@ public class SaveBase64DocumentService implements SimpleTask<SaveDocumentBase64R
 
                     // Total file bytes size firstly, convert megabyte then total size of files lower than 5MB. Program will save file on DB.
                     if (sizeOfFiles.intValue() <= 5 * 1000000L) {
-                        final UserDetails userInfo = jwtUserDetailsService.loadUserByUsername(saveDocumentBase64Request.getUsername());
-                        if (userInfo.getAuthorities().stream().findFirst().get().getAuthority().equals("ROLE_ADMIN")) {
-                            log.info("USER_INFO: {}", userInfo.getAuthorities().stream().findFirst().get().getAuthority());
-                        }
+                        // final UserDetails userInfo = jwtUserDetailsService.loadUserByUsername(saveDocumentBase64Request.getUsername());
                         final UserEntity userEntity = userInfoService.apply(saveDocumentBase64Request.getUsername());
                         final DocumentEntity document = DocumentEntity.builder()
                                 .userId(userEntity.getId())

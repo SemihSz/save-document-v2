@@ -14,6 +14,8 @@ public class DocumentConstant {
 
         public static final String AUTH_EMAIL_EXIST = "authentication.email_exits";
 
+        public static final String AUTH_DASHBOARD_REJECTED = "authentication.admin_rejected";
+
         public static final String FILE_NOT_EMPTY = "file.not_empty";
 
         public static final String FILE_NOT_ALLOWED = "file.not_allowed";

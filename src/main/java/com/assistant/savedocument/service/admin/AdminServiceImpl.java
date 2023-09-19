@@ -1,12 +1,17 @@
 package com.assistant.savedocument.service.admin;
 
+import com.assistant.savedocument.DocumentConstant;
 import com.assistant.savedocument.entity.DocumentEntity;
+import com.assistant.savedocument.exception.AuthException;
 import com.assistant.savedocument.model.admin.DashboardModel;
+import com.assistant.savedocument.model.enums.RoleTypes;
 import com.assistant.savedocument.repository.DocumentRepository;
 import com.assistant.savedocument.repository.UserRepository;
 import com.assistant.savedocument.service.auth.JwtUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -23,23 +28,29 @@ public class AdminServiceImpl implements AdminService {
 
     private final DocumentRepository documentRepository;
 
+    private final MessageSource messageSource;
+
     @Override
     public DashboardModel dashboardService(String username) {
         final UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(username);
-
-        if (userDetails.getAuthorities().stream().findFirst().get().getAuthority().equals("ROLE_ADMIN")) {
-            DashboardModel dashboardModel = new DashboardModel(null, null, countFileType());
-
-            return dashboardModel;
+        final Optional<GrantedAuthority> grantedAuthority = (Optional<GrantedAuthority>) userDetails.getAuthorities().stream().findFirst();
+        if (grantedAuthority.isPresent() && grantedAuthority.get().getAuthority().equals(RoleTypes.ROLE_ADMIN.name())) {
+            final List<DocumentEntity> documentList = documentRepository.findAll();
+            return new DashboardModel(userCount(), numberDocumentSaveCount(), countFileType(documentList));
         }
-
-        return null;
+        throw new com.assistant.savedocument.exception.AuthException((messageSource.getMessage(DocumentConstant.Exception.AUTH_DASHBOARD_REJECTED, null, Locale.ENGLISH)));
     }
 
+    private Long userCount() {
+        return userRepository.count();
+    }
 
-    private Map<String, Integer> countFileType() {
+    private Long numberDocumentSaveCount() {
+        return documentRepository.count();
+    }
 
-        final List<DocumentEntity> documentList = documentRepository.findAll();
+    private Map<String, Integer> countFileType(List<DocumentEntity> documentList) {
+
         Map<String, Integer> countFileType = new HashMap<>();
 
         for (DocumentEntity documentEntity : documentList) {
