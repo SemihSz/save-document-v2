@@ -1,5 +1,6 @@
 package com.assistant.savedocument.model.request.auth;
 
+import com.assistant.savedocument.model.enums.RoleTypes;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,5 +17,5 @@ public class UserRegisterRequestDTO {
 
     private String email;
 
-    private String role;
+    private RoleTypes role;
 }

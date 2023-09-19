@@ -1,12 +1,17 @@
 package com.assistant.savedocument.service.document;
 
 import com.assistant.savedocument.entity.DocumentEntity;
+import com.assistant.savedocument.entity.UserEntity;
+import com.assistant.savedocument.exception.BusinessException;
 import com.assistant.savedocument.model.request.document.SaveDocumentRequest;
 import com.assistant.savedocument.repository.DocumentRepository;
+import com.assistant.savedocument.service.auth.JwtUserDetailsService;
+import com.assistant.savedocument.service.auth.UserInfoService;
 import com.assistant.savedocument.task.SimpleTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -25,6 +30,10 @@ public class SaveMultipartDocumentService implements SimpleTask<SaveDocumentRequ
     private final DocumentRepository documentRepository;
 
     private final MultipartFileControlService fileControlService;
+
+    private final JwtUserDetailsService jwtUserDetailsService;
+
+    private final UserInfoService userInfoService;
 
 
     private static final DataSize MAX_FILE_SIZE = DataSize.ofMegabytes(5);
@@ -49,8 +58,10 @@ public class SaveMultipartDocumentService implements SimpleTask<SaveDocumentRequ
                 }
 
                 try {
+                    final UserDetails userInfo = jwtUserDetailsService.loadUserByUsername(request.getUsername());
+                    final UserEntity userEntity = userInfoService.apply(request.getUsername());
                     final DocumentEntity document = DocumentEntity.builder()
-                            .userId(request.getUserId())
+                            .userId(userEntity.getId())
                             .username(request.getUsername())
                             .fileType(multipartFile.getContentType())
                             .fileName(fileName)
@@ -59,9 +70,18 @@ public class SaveMultipartDocumentService implements SimpleTask<SaveDocumentRequ
                             .build();
                     documentRepository.save(document);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new BusinessException( "İşlemlerinizi şu vakit gerçekleştiremiyoruz.");
                 }
             });
+        }
+
+        // Java Virtual Threads Executor'ünü kapatın (Java 17+ kullanılıyorsa bu gerekli değil)
+        if (virtualThreadExecutor instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) virtualThreadExecutor).close();
+            } catch (Exception e) {
+                throw new BusinessException( "İşlemlerinizi şu vakit gerçekleştiremiyoruz.");
+            }
         }
 
         return Boolean.TRUE;

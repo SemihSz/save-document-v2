@@ -49,7 +49,7 @@ public class RegisterService implements SimpleTask<UserRegisterRequestDTO, Boole
         BCryptPasswordEncoder bcryptEncoder = new BCryptPasswordEncoder();
         registerRequest.setPassword(bcryptEncoder.encode(registerRequest.getPassword()));
         try {
-            final String strRoles = registerRequest.getRole();
+            final RoleTypes strRoles = registerRequest.getRole();
             Set<RoleEntity> roles = new HashSet<>();
             // TODO Upgrade here!
             if (strRoles == null) {
@@ -58,13 +58,13 @@ public class RegisterService implements SimpleTask<UserRegisterRequestDTO, Boole
                 roles.add(userRole);
             } else {
                 switch (strRoles) {
-                    case "admin":
+                    case ROLE_ADMIN:
                         RoleEntity adminRole = roleRepository.findByName(RoleTypes.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
 
                         break;
-                    case "mod":
+                    case ROLE_MODERATOR:
                         RoleEntity modRole = roleRepository.findByName(RoleTypes.ROLE_MODERATOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(modRole);

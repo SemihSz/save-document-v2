@@ -2,14 +2,19 @@ package com.assistant.savedocument.service.document;
 
 import com.assistant.savedocument.DocumentConstant;
 import com.assistant.savedocument.entity.DocumentEntity;
+import com.assistant.savedocument.entity.UserEntity;
+import com.assistant.savedocument.exception.BusinessException;
 import com.assistant.savedocument.model.Base64Files;
 import com.assistant.savedocument.model.request.document.SaveDocumentBase64Request;
 import com.assistant.savedocument.repository.DocumentRepository;
+import com.assistant.savedocument.service.auth.JwtUserDetailsService;
+import com.assistant.savedocument.service.auth.UserInfoService;
 import com.assistant.savedocument.task.SimpleTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 
@@ -33,6 +38,10 @@ public class SaveBase64DocumentService implements SimpleTask<SaveDocumentBase64R
     private final Base64FileControlService base64FileControlService;
 
     private final MessageSource messageSource;
+
+    private final JwtUserDetailsService jwtUserDetailsService;
+
+    private final UserInfoService userInfoService;
 
     private static final DataSize MAX_FILE_SIZE = DataSize.ofMegabytes(5);
 
@@ -108,8 +117,13 @@ public class SaveBase64DocumentService implements SimpleTask<SaveDocumentBase64R
 
                     // Total file bytes size firstly, convert megabyte then total size of files lower than 5MB. Program will save file on DB.
                     if (sizeOfFiles.intValue() <= 5 * 1000000L) {
+                        final UserDetails userInfo = jwtUserDetailsService.loadUserByUsername(saveDocumentBase64Request.getUsername());
+                        if (userInfo.getAuthorities().stream().findFirst().get().getAuthority().equals("ROLE_ADMIN")) {
+                            log.info("USER_INFO: {}", userInfo.getAuthorities().stream().findFirst().get().getAuthority());
+                        }
+                        final UserEntity userEntity = userInfoService.apply(saveDocumentBase64Request.getUsername());
                         final DocumentEntity document = DocumentEntity.builder()
-                                .userId(saveDocumentBase64Request.getUserId())
+                                .userId(userEntity.getId())
                                 .username(saveDocumentBase64Request.getUsername())
                                 .fileType(base64File.getFileType())
                                 .fileName(base64File.getFileName())
@@ -132,14 +146,15 @@ public class SaveBase64DocumentService implements SimpleTask<SaveDocumentBase64R
             });
         }
 
-//        // Java Virtual Threads Executor'ünü kapatın (Java 17+ kullanılıyorsa bu gerekli değil)
-//        if (virtualThreadExecutor instanceof AutoCloseable) {
-//            try {
-//                ((AutoCloseable) virtualThreadExecutor).close();
-//            } catch (Exception e) {
-//                log.error("Error closing Virtual Threads Executor: {}", e.getMessage());
-//            }
-//        }
+        // Java Virtual Threads Executor'ünü kapatın (Java 17+ kullanılıyorsa bu gerekli değil)
+        if (virtualThreadExecutor instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) virtualThreadExecutor).close();
+            } catch (Exception e) {
+                log.error("Error closing Virtual Threads Executor: {}", e.getMessage());
+                throw new BusinessException( "İşlemlerinizi şu vakit gerçekleştiremiyoruz.");
+            }
+        }
 
         return Boolean.TRUE;
     }
