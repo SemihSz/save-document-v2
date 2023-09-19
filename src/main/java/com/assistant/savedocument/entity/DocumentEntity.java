@@ -2,6 +2,7 @@ package com.assistant.savedocument.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +29,9 @@ public class DocumentEntity {
 
     private String fileType;
 
-    @Column(name = "data", columnDefinition = "LONGVARBINARY")
+    @Lob
+    @Basic(fetch=FetchType.LAZY)
+    @Column(length = 16000000)
     private byte[] data;
 
     public LocalDateTime time;

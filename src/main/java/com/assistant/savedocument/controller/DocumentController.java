@@ -59,11 +59,10 @@ public class DocumentController {
         return ResponseEntity.ok(new RestResponse<>(200, documentService.saveBase64(request)));
     }
 
-    @GetMapping("/document-list/{username}/{userId}")
-    public ResponseEntity<RestResponse<DocumentListResponse>> documentList(@ApiParam(required = true, value = "Username", example = "testusername") @PathVariable String username,
-                                                                           @ApiParam(required = true, value = "User Id", example = "1") @PathVariable Long userId) {
+    @GetMapping("/document-list/{username}")
+    public ResponseEntity<RestResponse<DocumentListResponse>> documentList(@ApiParam(required = true, value = "Username", example = "testusername") @PathVariable String username) {
 
-        return ResponseEntity.ok(new RestResponse<>(200, documentService.documents(username, userId)));
+        return ResponseEntity.ok(new RestResponse<>(200, documentService.documents(username)));
     }
 
     @GetMapping("/specific-document/{documentId}")

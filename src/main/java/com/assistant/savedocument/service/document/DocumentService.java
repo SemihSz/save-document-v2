@@ -34,10 +34,9 @@ public interface DocumentService {
     /**
      * User documents information response
      * @param username
-     * @param userId
      * @return
      */
-    DocumentListResponse documents(String username, Long userId);
+    DocumentListResponse documents(String username);
 
     /**
      * Specific selected document info

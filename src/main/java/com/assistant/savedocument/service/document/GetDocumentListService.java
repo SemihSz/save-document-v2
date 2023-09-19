@@ -5,6 +5,7 @@ import com.assistant.savedocument.model.DocumentInfoDTO;
 import com.assistant.savedocument.model.response.DocumentListResponse;
 import com.assistant.savedocument.repository.DocumentRepository;
 import com.assistant.savedocument.task.Mappers;
+import com.assistant.savedocument.task.SimpleTask;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,18 +18,17 @@ import java.util.Objects;
  */
 @Service
 @RequiredArgsConstructor
-public class GetDocumentListService implements Mappers<String, Long, DocumentListResponse> {
+public class GetDocumentListService implements SimpleTask<String, DocumentListResponse> {
 
     private final DocumentRepository documentRepository;
 
     /**
      * Get user documents information, response to documents list.
      * @param username the first function argument
-     * @param userId the second function argument
      * @return DocumentListResponse
      */
     @Override
-    public DocumentListResponse apply(String username, Long userId) {
+    public DocumentListResponse apply(String username) {
 
         final List<DocumentEntity> userDocuments = documentRepository.findByUsernameDocuments(username);
         final List<DocumentInfoDTO> base64Files = new ArrayList<>();

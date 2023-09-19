@@ -32,8 +32,8 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public DocumentListResponse documents(String username, Long userId) {
-        return getDocumentListService.apply(username, userId);
+    public DocumentListResponse documents(String username) {
+        return getDocumentListService.apply(username);
     }
 
     @Override

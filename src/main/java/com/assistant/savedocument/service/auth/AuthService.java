@@ -7,20 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class AuthService {
+public interface AuthService {
 
-    private final RegisterService registerService;
+    Boolean registerUser(UserRegisterRequestDTO registerRequest);
 
-    private final LoginService loginService;
-    public Boolean registerUser(UserRegisterRequestDTO registerRequest) {
-
-        return registerService.apply(registerRequest);
-    }
-
-    public JwtResponse loginUser(AuthRequest authRequest) {
-
-        return loginService.apply(authRequest);
-    }
-
+    JwtResponse loginUser(AuthRequest authRequest);
 }
