@@ -12,6 +12,10 @@ server:
     context-path: /document
 
 spring:
+  cache:
+    type=: ehcache
+    ehcache:
+      config: classpath:ehcache.xml
   servlet:
     multipart:
       max-file-size: 10MB

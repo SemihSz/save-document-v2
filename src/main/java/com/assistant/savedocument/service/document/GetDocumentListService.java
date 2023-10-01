@@ -4,6 +4,7 @@ import com.assistant.savedocument.entity.DocumentEntity;
 import com.assistant.savedocument.model.DocumentInfoDTO;
 import com.assistant.savedocument.model.response.DocumentListResponse;
 import com.assistant.savedocument.repository.DocumentRepository;
+import com.assistant.savedocument.service.cache.CacheService;
 import com.assistant.savedocument.task.Mappers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ public class GetDocumentListService implements Mappers<String, Long, DocumentLis
 
     private final DocumentRepository documentRepository;
 
+    private final CacheService<String, List<DocumentInfoDTO>> cacheService;
+
     /**
      * Get user documents information, response to documents list.
      * @param username the first function argument
@@ -30,9 +33,11 @@ public class GetDocumentListService implements Mappers<String, Long, DocumentLis
     @Override
     public DocumentListResponse apply(String username, Long userId) {
 
+
         final List<DocumentEntity> userDocuments = documentRepository.findByUsernameDocuments(username);
-        final List<DocumentInfoDTO> base64Files = new ArrayList<>();
-        if (Objects.nonNull(userDocuments)) {
+        final List<DocumentInfoDTO> base64Files = cacheService.get(username);
+
+        if (Objects.nonNull(userDocuments) && base64Files.isEmpty()) {
 
             userDocuments.forEach(t -> {
                 final DocumentInfoDTO infoDTO = DocumentInfoDTO.builder()
@@ -46,6 +51,7 @@ public class GetDocumentListService implements Mappers<String, Long, DocumentLis
                         .build();
                 base64Files.add(infoDTO);
             });
+            cacheService.put(username, base64Files);
         }
         return DocumentListResponse.builder().documents(base64Files).build();
     }
